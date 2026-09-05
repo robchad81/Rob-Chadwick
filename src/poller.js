@@ -1,0 +1,89 @@
+import { fetchListing } from "./sources/genericListingSource.js";
+import { logger } from "./logger.js";
+
+/**
+ * Compares a freshly fetched listing against the last-seen snapshot for a
+ * source and returns what changed: brand-new items, and previously
+ * out-of-stock items that have come back.
+ */
+export function diffListing(previousItems, currentItems) {
+  const previousById = new Map(Object.entries(previousItems ?? {}));
+  const newItems = [];
+  const restocked = [];
+
+  for (const item of currentItems) {
+    const previous = previousById.get(item.id);
+    if (!previous) {
+      newItems.push(item);
+    } else if (!previous.inStock && item.inStock) {
+      restocked.push(item);
+    }
+  }
+
+  return { newItems, restocked };
+}
+
+export function snapshotFromItems(currentItems) {
+  const snapshot = {};
+  for (const item of currentItems) snapshot[item.id] = item;
+  return snapshot;
+}
+
+export class Poller {
+  constructor({ config, store, notifier }) {
+    this.config = config;
+    this.store = store;
+    this.notifier = notifier;
+    this.failureCounts = new Map();
+    this.alerted = new Set();
+  }
+
+  async pollOnce() {
+    for (const source of this.config.sources) {
+      if (source.enabled === false) continue;
+      await this._pollSource(source);
+    }
+  }
+
+  async _pollSource(source) {
+    try {
+      const currentItems = await fetchListing(source);
+      const previousItems = this.store.get(`snapshot:${source.id}`, {});
+      const { newItems, restocked } = diffListing(previousItems, currentItems);
+
+      for (const item of newItems) {
+        await this.notifier.postAlert(source, "New release", item);
+      }
+      for (const item of restocked) {
+        await this.notifier.postAlert(source, "Back in stock", item);
+      }
+
+      this.store.set(`snapshot:${source.id}`, snapshotFromItems(currentItems));
+      this._recordSuccess(source);
+    } catch (error) {
+      await this._recordFailure(source, error);
+    }
+  }
+
+  _recordSuccess(source) {
+    this.failureCounts.set(source.id, 0);
+    if (this.alerted.has(source.id)) {
+      this.alerted.delete(source.id);
+      this.notifier.alertAdmin(`"${source.name}" is back to normal after previous failures.`);
+    }
+  }
+
+  async _recordFailure(source, error) {
+    const count = (this.failureCounts.get(source.id) ?? 0) + 1;
+    this.failureCounts.set(source.id, count);
+    logger.error(`Source "${source.id}" failed (${count} in a row):`, error.message);
+
+    const threshold = this.config.consecutiveFailuresBeforeAlert ?? 3;
+    if (count >= threshold && !this.alerted.has(source.id)) {
+      this.alerted.add(source.id);
+      await this.notifier.alertAdmin(
+        `"${source.name}" has failed ${count} checks in a row. Last error: ${error.message}`
+      );
+    }
+  }
+}

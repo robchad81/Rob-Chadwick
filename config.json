@@ -1,0 +1,30 @@
+{
+  "pollIntervalMs": 120000,
+  "consecutiveFailuresBeforeAlert": 3,
+  "sources": [
+    {
+      "id": "whisky-exchange-new-arrivals",
+      "name": "The Whisky Exchange - New Arrivals",
+      "url": "https://www.thewhiskyexchange.com/new-products",
+      "itemSelector": "VERIFY: inspect the live page and set this to the repeated product-card selector",
+      "titleSelector": "VERIFY: selector for the product title, relative to itemSelector",
+      "linkSelector": "VERIFY: selector for the product link, relative to itemSelector",
+      "linkAttr": "href",
+      "priceSelector": "VERIFY: selector for the displayed price, relative to itemSelector",
+      "outOfStockSelector": "VERIFY: selector that only matches when the item is out of stock/sold out",
+      "enabled": false
+    },
+    {
+      "id": "master-of-malt-new-arrivals",
+      "name": "Master of Malt - New Arrivals",
+      "url": "https://www.masterofmalt.com/new-arrivals/whisky-new-arrivals/",
+      "itemSelector": "VERIFY: inspect the live page and set this to the repeated product-card selector",
+      "titleSelector": "VERIFY: selector for the product title, relative to itemSelector",
+      "linkSelector": "VERIFY: selector for the product link, relative to itemSelector",
+      "linkAttr": "href",
+      "priceSelector": "VERIFY: selector for the displayed price, relative to itemSelector",
+      "outOfStockSelector": "VERIFY: selector that only matches when the item is out of stock/sold out",
+      "enabled": false
+    }
+  ]
+}
