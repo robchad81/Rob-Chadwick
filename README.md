@@ -48,12 +48,26 @@ guessed - they need to be filled in against the live page:
 A source left on placeholder selectors will throw a clear error (visible in
 the logs, and eventually an admin DM) rather than silently doing nothing.
 
-## Running it for real
+## Deploying to Render
 
-This needs to run somewhere with normal internet access and stay up
-continuously - a small VPS (e.g. a $5-6/month box), Railway, Fly.io, or a
-Raspberry Pi at home all work. `npm start` under a process manager (pm2,
-systemd, or the platform's own restart-on-crash) is enough for the MVP.
+This repo includes a `render.yaml` Blueprint, so deployment is mostly
+point-and-click:
+
+1. Push this repo to GitHub (already done if you're reading this from there).
+2. On https://dashboard.render.com, click **New +** -> **Blueprint**, and
+   connect this GitHub repo. Render will detect `render.yaml` automatically
+   and set up a background worker on the $7/month Starter plan with a 1GB
+   persistent disk (so `data/state.json` survives restarts/redeploys).
+3. Render will prompt you to fill in the three secret environment variables
+   (`DISCORD_BOT_TOKEN`, `ALERTS_CHANNEL_ID`, `ADMIN_DISCORD_ID`) from the
+   Setup section above - paste them straight into Render's dashboard, never
+   into a file that gets committed.
+4. Deploy. The **Logs** tab in the Render dashboard shows exactly what the
+   bot is doing (each poll, any alerts sent, any source failures) without
+   needing a terminal.
+
+Any time you push a change to this repo's default branch, Render redeploys
+automatically.
 
 ## Not in this MVP (by design)
 

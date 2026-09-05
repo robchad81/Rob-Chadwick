@@ -1,0 +1,20 @@
+services:
+  - type: worker
+    name: dram-radar
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: ALERTS_CHANNEL_ID
+        sync: false
+      - key: ADMIN_DISCORD_ID
+        sync: false
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: state
+      mountPath: /var/data
+      sizeGB: 1

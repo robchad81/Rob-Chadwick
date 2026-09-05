@@ -31,7 +31,8 @@ async function main() {
     );
   }
 
-  const store = new JsonStore(join(__dirname, "..", "data", "state.json"));
+  const dataDir = process.env.DATA_DIR ?? join(__dirname, "..", "data");
+  const store = new JsonStore(join(dataDir, "state.json"));
 
   const notifier = new DiscordNotifier({
     token: requireEnv("DISCORD_BOT_TOKEN"),
