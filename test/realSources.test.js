@@ -53,3 +53,44 @@ test("Master of Malt config selectors match a real sample page", () => {
   assert.equal(soldOut.title, "Kildalton 21 Year Old - Living Souls");
   assert.equal(soldOut.inStock, false);
 });
+
+test("Abbey Whisky config selectors match a real sample page", () => {
+  const source = findSource("abbey-whisky-new-arrivals");
+  const items = parseListing(loadFixture("abbey-whisky-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].title, "Kilkerran 12 Year Old (Bottled 2026)");
+  assert.equal(items[0].price, "£54.50");
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(items[1].title, "Rare Old Sherry Cask");
+  assert.equal(items[1].inStock, false);
+});
+
+test("Royal Mile Whiskies config selectors match a real sample page", () => {
+  const source = findSource("royal-mile-whiskies-new-products");
+  const items = parseListing(loadFixture("royal-mile-whiskies-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].title, "Glengoyne 17 Year Old Scottish Oak");
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(items[1].title, "Caol Ila 2002 23 Year Old Connoiseurs Choice #8379");
+  assert.equal(items[1].inStock, false);
+});
+
+test("Loch Fyne Whiskies config selectors match a real sample page", () => {
+  const source = findSource("loch-fyne-whiskies-new");
+  const items = parseListing(loadFixture("loch-fyne-whiskies-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].title, "Raer Single Malt Inaugural Release");
+  assert.equal(items[0].price, "£68.00");
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(
+    items[1].inStock,
+    false,
+    "text-based 'Sold Out' detection, not the unreliable data-dimension10 attribute"
+  );
+});

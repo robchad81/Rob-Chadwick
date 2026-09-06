@@ -12,7 +12,8 @@
       "linkAttr": "href",
       "priceSelector": ".product-card__price",
       "outOfStockSelector": ".js-product-outofstock",
-      "enabled": true
+      "enabled": false,
+      "disabledReason": "Blocks requests outright (HTTP 403) even with realistic browser headers - likely blocking Render's IP range. Selectors are verified and ready if we later add a scraping-API/proxy service."
     },
     {
       "id": "master-of-malt-new-arrivals",
@@ -24,6 +25,43 @@
       "linkAttr": "href",
       "priceSelector": ".priceText:not(.line-through)",
       "outOfStockSelector": "svg.lucide-mail",
+      "enabled": false,
+      "disabledReason": "Rate-limits requests outright (HTTP 429) even with realistic browser headers - likely blocking Render's IP range. Selectors are verified and ready if we later add a scraping-API/proxy service."
+    },
+    {
+      "id": "abbey-whisky-new-arrivals",
+      "name": "Abbey Whisky - New Arrivals",
+      "url": "https://www.abbeywhisky.com/collections/new-whisky-arrivals",
+      "itemSelector": ".productitem",
+      "titleSelector": ".productitem--title",
+      "linkSelector": ".productitem--image-link",
+      "linkAttr": "href",
+      "priceSelector": ".price--main",
+      "outOfStockSelector": ".badge--soldout",
+      "enabled": true
+    },
+    {
+      "id": "royal-mile-whiskies-new-products",
+      "name": "Royal Mile Whiskies - New Products",
+      "url": "https://www.royalmilewhiskies.com/new-products/",
+      "itemSelector": ".fpw-prod-details",
+      "titleSelector": "a.lk",
+      "linkSelector": "a.lk",
+      "linkAttr": "href",
+      "priceSelector": ".price",
+      "outOfStockSelector": "b[style*=\"d43b0e\"]",
+      "enabled": true
+    },
+    {
+      "id": "loch-fyne-whiskies-new",
+      "name": "Loch Fyne Whiskies - New",
+      "url": "https://www.lochfynewhiskies.com/new",
+      "itemSelector": "li.item.product.product-item",
+      "titleSelector": ".product-item-link",
+      "linkSelector": ".product-item-link",
+      "linkAttr": "href",
+      "priceSelector": ".price-box.price-final_price",
+      "outOfStockText": "Sold Out",
       "enabled": true
     }
   ]

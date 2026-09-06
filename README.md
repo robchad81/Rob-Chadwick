@@ -35,25 +35,37 @@ or checks out.
 
 ## Sources currently enabled
 
-Both The Whisky Exchange ("New Products") and Master of Malt ("New Arrivals -
-Whisky") are enabled in `config.json`, with selectors verified against saved
-copies of the live pages (see `test/fixtures/` and `test/realSources.test.js` -
-`npm test` checks these selectors still parse correctly any time the code or
-config changes).
+Five retailers have verified selectors in `config.json` (see `test/fixtures/`
+and `test/realSources.test.js` - `npm test` checks these selectors still
+parse correctly any time the code or config changes), but only three are
+enabled:
+
+- **Abbey Whisky**, **Royal Mile Whiskies**, **Loch Fyne Whiskies** - enabled.
+- **The Whisky Exchange** and **Master of Malt** - disabled (`"enabled": false`,
+  with a `"disabledReason"` explaining why). Both outright blocked requests
+  from Render in production (403 and 429 respectively) even with realistic
+  browser headers, which looks like IP-range blocking rather than anything
+  fixable from the request side. Their selectors are verified and ready to
+  flip back on if we ever add a scraping-API/proxy service in front of them -
+  see the git history around when they were disabled for the full
+  investigation.
 
 Master of Malt's markup is a client-rendered React/Next.js app rather than
-plain server-rendered HTML, which makes it more likely to break if they
-change their frontend. If its logs start showing repeated failures (or an
-admin DM about it), that's the first place to look - re-save the live page
-and compare against `test/fixtures/master-of-malt-sample.html` to see what
-changed.
+plain server-rendered HTML, which would make it more likely to break if
+enabled again and their frontend changes.
 
-To add another retailer later: open its listing page, Inspect a product
-card to find the repeating element and the title/link/price/out-of-stock
-selectors within it, add a new entry to `config.json` with `"enabled": true`,
-and ideally a fixture + test like the two above. A source left on
-placeholder (`"VERIFY: ..."`) selectors will throw a clear error rather than
-silently doing nothing.
+To add another retailer: open its listing page, Inspect a product card to
+find the repeating element and the title/link/price selectors within it. For
+out-of-stock detection, use `outOfStockSelector` (a CSS selector for an
+element that only exists when out of stock) if the site has one, or
+`outOfStockText` (a substring to check for in the price text, e.g. `"Sold
+Out"`) if it doesn't - check both against a couple of real sold-out products
+before trusting either, since some sites expose stock-status data attributes
+that don't actually match what's displayed (Loch Fyne Whiskies does this).
+Add the new entry to `config.json` with `"enabled": true`, and ideally a
+fixture + test like the ones already there. A source left on placeholder
+(`"VERIFY: ..."`) selectors will throw a clear error rather than silently
+doing nothing.
 
 ## Deploying to Render
 

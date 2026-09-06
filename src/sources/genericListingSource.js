@@ -36,6 +36,22 @@ export async function fetchListing(source) {
   return parseListing(html, source);
 }
 
+/**
+ * Some retailers replace the price with plain text like "Sold Out" rather
+ * than adding a distinct element/class we can select on - outOfStockText
+ * handles that case by checking the price text itself. outOfStockSelector
+ * (an element that only exists when out of stock) is checked otherwise.
+ */
+function isInStock(node, source, price) {
+  if (source.outOfStockText) {
+    return !(price ?? "").toLowerCase().includes(source.outOfStockText.toLowerCase());
+  }
+  if (source.outOfStockSelector) {
+    return node.find(source.outOfStockSelector).length === 0;
+  }
+  return true;
+}
+
 export function parseListing(html, source) {
   const $ = cheerio.load(html);
   const items = [];
@@ -48,7 +64,7 @@ export function parseListing(html, source) {
 
     const url = new URL(hrefRaw, source.url).toString();
     const price = source.priceSelector ? node.find(source.priceSelector).first().text().trim() : undefined;
-    const inStock = source.outOfStockSelector ? node.find(source.outOfStockSelector).length === 0 : true;
+    const inStock = isInStock(node, source, price);
 
     items.push({ id: url, title, url, price, inStock });
   });
