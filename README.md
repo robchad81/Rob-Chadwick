@@ -37,18 +37,20 @@ or checks out.
 
 Five retailers have verified selectors in `config.json` (see `test/fixtures/`
 and `test/realSources.test.js` - `npm test` checks these selectors still
-parse correctly any time the code or config changes), but only three are
-enabled:
+parse correctly any time the code or config changes), but only two are
+actually enabled and alerting:
 
-- **Abbey Whisky**, **Royal Mile Whiskies**, **Loch Fyne Whiskies** - enabled.
-- **The Whisky Exchange** and **Master of Malt** - disabled (`"enabled": false`,
-  with a `"disabledReason"` explaining why). Both outright blocked requests
-  from Render in production (403 and 429 respectively) even with realistic
-  browser headers, which looks like IP-range blocking rather than anything
-  fixable from the request side. Their selectors are verified and ready to
-  flip back on if we ever add a scraping-API/proxy service in front of them -
-  see the git history around when they were disabled for the full
-  investigation.
+- **Abbey Whisky** and **Loch Fyne Whiskies** - enabled, confirmed working
+  in production (both seed their baseline cleanly, no blocking).
+- **The Whisky Exchange**, **Master of Malt**, and **Royal Mile Whiskies** -
+  disabled (`"enabled": false`, with a `"disabledReason"` explaining why).
+  All three outright blocked requests from Render in production (403/429)
+  even with realistic browser headers, which looks like IP-range blocking
+  rather than anything fixable from the request side - smaller retailers
+  aren't immune to this either, just less likely to have it. Their selectors
+  are verified and ready to flip back on if we ever add a scraping-API/proxy
+  service in front of them - see the git history around when they were
+  disabled for the full investigation.
 
 Master of Malt's markup is a client-rendered React/Next.js app rather than
 plain server-rendered HTML, which would make it more likely to break if

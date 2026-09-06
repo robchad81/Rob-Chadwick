@@ -50,7 +50,8 @@
       "linkAttr": "href",
       "priceSelector": ".price",
       "outOfStockSelector": "b[style*=\"d43b0e\"]",
-      "enabled": true
+      "enabled": false,
+      "disabledReason": "Blocks requests outright (HTTP 403) even with realistic browser headers, same as The Whisky Exchange - likely IP-range blocking. Selectors are verified and ready if we later add a scraping-API/proxy service."
     },
     {
       "id": "loch-fyne-whiskies-new",
