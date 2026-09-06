@@ -21,7 +21,13 @@ export async function fetchListing(source) {
   assertConfigured(source);
 
   const response = await fetch(source.url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; DramRadar/0.1; +monitoring)" },
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+        "Chrome/128.0.0.0 Safari/537.36",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language": "en-GB,en;q=0.9",
+    },
   });
   if (!response.ok) {
     throw new Error(`Fetch failed for "${source.id}": HTTP ${response.status}`);
