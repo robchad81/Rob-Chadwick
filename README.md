@@ -30,23 +30,27 @@ or checks out.
    - `ADMIN_DISCORD_ID` - your own Discord user ID, for health-check DMs
 3. `npm start`
 
-## Before enabling a real source
+## Sources currently enabled
 
-Every source in `config.json` ships with `"enabled": false` and placeholder
-selectors (`"VERIFY: ..."`). This environment couldn't reach the target
-retailer sites to inspect their real markup, so the selectors are not
-guessed - they need to be filled in against the live page:
+Both The Whisky Exchange ("New Products") and Master of Malt ("New Arrivals -
+Whisky") are enabled in `config.json`, with selectors verified against saved
+copies of the live pages (see `test/fixtures/` and `test/realSources.test.js` -
+`npm test` checks these selectors still parse correctly any time the code or
+config changes).
 
-1. Open the retailer's listing page in a browser, right-click a product
-   card -> Inspect, and find the repeating element (`itemSelector`) plus
-   the title/link/price/out-of-stock elements within it.
-2. Fill those into the source's config entry.
-3. Flip `"enabled": true`.
-4. Run `npm test` - or point a quick script at a saved copy of the page - to
-   sanity-check the selectors before letting it run against the live site.
+Master of Malt's markup is a client-rendered React/Next.js app rather than
+plain server-rendered HTML, which makes it more likely to break if they
+change their frontend. If its logs start showing repeated failures (or an
+admin DM about it), that's the first place to look - re-save the live page
+and compare against `test/fixtures/master-of-malt-sample.html` to see what
+changed.
 
-A source left on placeholder selectors will throw a clear error (visible in
-the logs, and eventually an admin DM) rather than silently doing nothing.
+To add another retailer later: open its listing page, Inspect a product
+card to find the repeating element and the title/link/price/out-of-stock
+selectors within it, add a new entry to `config.json` with `"enabled": true`,
+and ideally a fixture + test like the two above. A source left on
+placeholder (`"VERIFY: ..."`) selectors will throw a clear error rather than
+silently doing nothing.
 
 ## Deploying to Render
 

@@ -6,25 +6,25 @@
       "id": "whisky-exchange-new-arrivals",
       "name": "The Whisky Exchange - New Arrivals",
       "url": "https://www.thewhiskyexchange.com/new-products",
-      "itemSelector": "VERIFY: inspect the live page and set this to the repeated product-card selector",
-      "titleSelector": "VERIFY: selector for the product title, relative to itemSelector",
-      "linkSelector": "VERIFY: selector for the product link, relative to itemSelector",
+      "itemSelector": "li.product-grid__item:not(.product-grid__item--load-more)",
+      "titleSelector": ".product-card__name",
+      "linkSelector": "a.product-card",
       "linkAttr": "href",
-      "priceSelector": "VERIFY: selector for the displayed price, relative to itemSelector",
-      "outOfStockSelector": "VERIFY: selector that only matches when the item is out of stock/sold out",
-      "enabled": false
+      "priceSelector": ".product-card__price",
+      "outOfStockSelector": ".js-product-outofstock",
+      "enabled": true
     },
     {
       "id": "master-of-malt-new-arrivals",
       "name": "Master of Malt - New Arrivals",
       "url": "https://www.masterofmalt.com/new-arrivals/whisky-new-arrivals/",
-      "itemSelector": "VERIFY: inspect the live page and set this to the repeated product-card selector",
-      "titleSelector": "VERIFY: selector for the product title, relative to itemSelector",
-      "linkSelector": "VERIFY: selector for the product link, relative to itemSelector",
+      "itemSelector": ".product-tile",
+      "titleSelector": ".line-clamp-2",
+      "linkSelector": "a",
       "linkAttr": "href",
-      "priceSelector": "VERIFY: selector for the displayed price, relative to itemSelector",
-      "outOfStockSelector": "VERIFY: selector that only matches when the item is out of stock/sold out",
-      "enabled": false
+      "priceSelector": ".priceText:not(.line-through)",
+      "outOfStockSelector": "svg.lucide-mail",
+      "enabled": true
     }
   ]
 }
