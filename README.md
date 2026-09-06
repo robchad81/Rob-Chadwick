@@ -15,6 +15,9 @@ or checks out.
 - That list is diffed against the last-seen snapshot (`data/state.json`) to
   find brand-new items and previously-out-of-stock items that came back.
   Both get posted to the Discord alerts channel.
+- The very first poll of a source (or after clearing its state) only
+  records a baseline silently - it doesn't alert on everything currently
+  listed, since that's not "new," just the first time we've looked.
 - If a source fails to fetch/parse several times in a row, you (the admin)
   get a DM instead of the public channel going quiet - see
   `consecutiveFailuresBeforeAlert` in `config.json`.

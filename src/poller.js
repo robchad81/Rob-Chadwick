@@ -48,14 +48,21 @@ export class Poller {
   async _pollSource(source) {
     try {
       const currentItems = await fetchListing(source);
-      const previousItems = this.store.get(`snapshot:${source.id}`, {});
-      const { newItems, restocked } = diffListing(previousItems, currentItems);
+      const previousItems = this.store.get(`snapshot:${source.id}`, undefined);
 
-      for (const item of newItems) {
-        await this.notifier.postAlert(source, "New release", item);
-      }
-      for (const item of restocked) {
-        await this.notifier.postAlert(source, "Back in stock", item);
+      if (previousItems === undefined) {
+        logger.info(
+          `Seeding initial snapshot for "${source.id}" with ${currentItems.length} item(s) - ` +
+            "no alerts sent for this baseline, only for changes after it."
+        );
+      } else {
+        const { newItems, restocked } = diffListing(previousItems, currentItems);
+        for (const item of newItems) {
+          await this.notifier.postAlert(source, "New release", item);
+        }
+        for (const item of restocked) {
+          await this.notifier.postAlert(source, "Back in stock", item);
+        }
       }
 
       this.store.set(`snapshot:${source.id}`, snapshotFromItems(currentItems));

@@ -74,7 +74,19 @@ test("Poller alerts admin only after N consecutive failures, then once on recove
   assert.equal(notifier.adminAlerts.length, 1, "should not re-alert every subsequent failure");
 });
 
-test("Poller posts alerts for new items found on a working source", async () => {
+function cardHtml(...items) {
+  return items
+    .map(
+      ({ href, title, price }) => `
+    <li class="product-card">
+      <a class="product-card__link" href="${href}"><span class="product-card__title">${title}</span></a>
+      <span class="product-card__price">${price}</span>
+    </li>`
+    )
+    .join("");
+}
+
+test("Poller seeds the first-ever poll of a source silently, then alerts on later changes", async () => {
   const source = {
     id: "good-source",
     name: "Good Source",
@@ -85,12 +97,9 @@ test("Poller posts alerts for new items found on a working source", async () => 
     priceSelector: ".product-card__price",
     outOfStockSelector: ".product-card__stock-flag",
   };
-  const html = `
-    <li class="product-card">
-      <a class="product-card__link" href="/products/x"><span class="product-card__title">X</span></a>
-      <span class="product-card__price">£10</span>
-    </li>`;
   const originalFetch = global.fetch;
+  const existing = { href: "/products/x", title: "X", price: "£10" };
+  let html = cardHtml(existing);
   global.fetch = async () => ({ ok: true, text: async () => html });
 
   try {
@@ -98,11 +107,19 @@ test("Poller posts alerts for new items found on a working source", async () => 
     const notifier = fakeNotifier();
     const poller = new Poller({ config, store: fakeStore(), notifier });
 
+    // First poll ever: nothing to compare against, so no alerts even though
+    // "X" wasn't seen before - it's the baseline, not a new release.
+    await poller.pollOnce();
+    assert.equal(notifier.alerts.length, 0);
+
+    // A genuinely new item appears on a later poll: this should alert.
+    html = cardHtml(existing, { href: "/products/y", title: "Y", price: "£20" });
     await poller.pollOnce();
     assert.equal(notifier.alerts.length, 1);
     assert.equal(notifier.alerts[0].kind, "New release");
+    assert.equal(notifier.alerts[0].item.title, "Y");
 
-    // Second poll with the same data should not re-alert on the same item.
+    // Polling again with the same data should not re-alert on the same item.
     await poller.pollOnce();
     assert.equal(notifier.alerts.length, 1);
   } finally {
