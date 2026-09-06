@@ -1,12 +1,45 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { logger } from "./logger.js";
 
 export class DiscordNotifier {
-  constructor({ token, alertsChannelId, adminUserId }) {
+  constructor({
+    token,
+    alertsChannelId,
+    instantAlertsChannelId,
+    adminUserId,
+    guildId,
+    subscriberRoleId,
+    onDirectMessage,
+  }) {
     this.token = token;
     this.alertsChannelId = alertsChannelId;
+    this.instantAlertsChannelId = instantAlertsChannelId;
     this.adminUserId = adminUserId;
-    this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
+    this.guildId = guildId;
+    this.subscriberRoleId = subscriberRoleId;
+    this.onDirectMessage = onDirectMessage;
+
+    // DirectMessages is a normal (non-privileged) intent, and Discord
+    // exempts DMs from needing the privileged Message Content intent - so
+    // subscribing-via-DM works without asking for extra bot permissions.
+    this.client = new Client({
+      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages],
+      partials: [Partials.Channel],
+    });
+
+    if (this.onDirectMessage) {
+      this.client.on("messageCreate", (message) => this._handleDirectMessage(message));
+    }
+  }
+
+  async _handleDirectMessage(message) {
+    if (message.author.bot || message.guild) return;
+    try {
+      const reply = await this.onDirectMessage(message.author.id);
+      if (reply) await message.channel.send(reply);
+    } catch (error) {
+      logger.error(`Failed to handle DM from ${message.author.id}:`, error.message);
+    }
   }
 
   async connect() {
@@ -20,10 +53,18 @@ export class DiscordNotifier {
     });
   }
 
-  async postAlert(source, kind, item) {
-    const channel = await this.client.channels.fetch(this.alertsChannelId);
+  async _postToChannel(channelId, source, kind, item) {
+    const channel = await this.client.channels.fetch(channelId);
     const priceText = item.price ? ` - ${item.price}` : "";
     await channel.send(`**${kind}** [${source.name}]\n${item.title}${priceText}\n${item.url}`);
+  }
+
+  async postInstantAlert(source, kind, item) {
+    await this._postToChannel(this.instantAlertsChannelId, source, kind, item);
+  }
+
+  async postFreeAlert(source, kind, item) {
+    await this._postToChannel(this.alertsChannelId, source, kind, item);
   }
 
   async alertAdmin(message) {
@@ -33,6 +74,27 @@ export class DiscordNotifier {
     } catch (error) {
       logger.error("Failed to DM admin health-check alert:", error.message);
     }
+  }
+
+  async dmUser(discordUserId, message) {
+    try {
+      const user = await this.client.users.fetch(discordUserId);
+      await user.send(message);
+    } catch (error) {
+      logger.error(`Failed to DM user ${discordUserId}:`, error.message);
+    }
+  }
+
+  async grantSubscriberRole(discordUserId) {
+    const guild = await this.client.guilds.fetch(this.guildId);
+    const member = await guild.members.fetch(discordUserId);
+    await member.roles.add(this.subscriberRoleId);
+  }
+
+  async revokeSubscriberRole(discordUserId) {
+    const guild = await this.client.guilds.fetch(this.guildId);
+    const member = await guild.members.fetch(discordUserId);
+    await member.roles.remove(this.subscriberRoleId);
   }
 
   async disconnect() {

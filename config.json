@@ -1,6 +1,8 @@
 {
   "pollIntervalMs": 120000,
   "consecutiveFailuresBeforeAlert": 3,
+  "freeAlertDelayMs": 1200000,
+  "subscriptionPriceGbp": "10",
   "sources": [
     {
       "id": "whisky-exchange-new-arrivals",

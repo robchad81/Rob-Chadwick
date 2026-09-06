@@ -30,10 +30,11 @@ export function snapshotFromItems(currentItems) {
 }
 
 export class Poller {
-  constructor({ config, store, notifier }) {
+  constructor({ config, store, notifier, schedule = setTimeout }) {
     this.config = config;
     this.store = store;
     this.notifier = notifier;
+    this.schedule = schedule;
     this.failureCounts = new Map();
     this.alerted = new Set();
   }
@@ -58,10 +59,10 @@ export class Poller {
       } else {
         const { newItems, restocked } = diffListing(previousItems, currentItems);
         for (const item of newItems) {
-          await this.notifier.postAlert(source, "New release", item);
+          await this._postChange(source, "New release", item);
         }
         for (const item of restocked) {
-          await this.notifier.postAlert(source, "Back in stock", item);
+          await this._postChange(source, "Back in stock", item);
         }
       }
 
@@ -70,6 +71,22 @@ export class Poller {
     } catch (error) {
       await this._recordFailure(source, error);
     }
+  }
+
+  /**
+   * Paid subscribers get alerted the instant a change is found. Everyone
+   * else sees the same alert in the free channel, but only after
+   * freeAlertDelayMs - that gap is the entire reason someone would pay.
+   */
+  async _postChange(source, kind, item) {
+    await this.notifier.postInstantAlert(source, kind, item);
+
+    const delayMs = this.config.freeAlertDelayMs ?? 0;
+    this.schedule(() => {
+      this.notifier
+        .postFreeAlert(source, kind, item)
+        .catch((error) => logger.error(`Failed to post delayed free alert for "${source.id}":`, error.message));
+    }, delayMs);
   }
 
   _recordSuccess(source) {

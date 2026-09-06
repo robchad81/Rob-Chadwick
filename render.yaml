@@ -1,16 +1,29 @@
 services:
-  - type: worker
+  - type: web
     name: dram-radar
     runtime: node
     plan: starter
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /
     envVars:
       - key: DISCORD_BOT_TOKEN
         sync: false
       - key: ALERTS_CHANNEL_ID
         sync: false
+      - key: INSTANT_ALERTS_CHANNEL_ID
+        sync: false
       - key: ADMIN_DISCORD_ID
+        sync: false
+      - key: GUILD_ID
+        sync: false
+      - key: SUBSCRIBER_ROLE_ID
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
         sync: false
       - key: DATA_DIR
         value: /var/data
