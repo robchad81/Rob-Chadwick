@@ -66,6 +66,76 @@
       "priceSelector": ".price-box.price-final_price",
       "outOfStockText": "Sold Out",
       "enabled": true
+    },
+    {
+      "id": "hard-to-find-whisky-new-arrivals",
+      "name": "Hard To Find Whisky - New Arrivals",
+      "url": "https://www.htfw.com/new-arrivals/whisky",
+      "itemSelector": "form.product_addtocart_form",
+      "titleSelector": "a.product-item",
+      "titleAttr": "title",
+      "linkSelector": "a.product-item",
+      "linkAttr": "href",
+      "priceSelector": ".price",
+      "enabled": true
+    },
+    {
+      "id": "spirits-embassy-latest-arrivals",
+      "name": "The Spirits Embassy - Latest Arrivals",
+      "url": "https://thespiritsembassy.com/collections/latest-arrivals",
+      "itemSelector": ".grid-item.grid-product",
+      "titleSelector": ".grid-product__title",
+      "linkSelector": ".grid-item__link",
+      "linkAttr": "href",
+      "priceSelector": ".grid-product__price--current",
+      "outOfStockSelector": ".grid-product__tag--sold-out",
+      "enabled": true
+    },
+    {
+      "id": "whiskys-co-uk-new-in-stock",
+      "name": "Whiskys.co.uk - New In-Stock",
+      "url": "https://whiskys.co.uk/collections/new-trending",
+      "itemSelector": ".product-grid__item",
+      "titleSelector": ".product-card__link .visually-hidden",
+      "linkSelector": ".product-card__link",
+      "linkAttr": "href",
+      "priceSelector": ".price",
+      "enabled": true
+    },
+    {
+      "id": "whisky-international-online-new",
+      "name": "Whisky International Online - New Whisky",
+      "url": "https://whiskyinternationalonline.com/collections/new-whisky",
+      "itemSelector": ".product-item.card",
+      "titleSelector": ".product-item__title",
+      "linkSelector": "a",
+      "linkAttr": "href",
+      "priceSelector": ".product-item__price .money",
+      "enabled": true
+    },
+    {
+      "id": "house-of-malt-new-arrivals",
+      "name": "House of Malt - New Arrivals",
+      "url": "https://www.houseofmalt.co.uk/shop/",
+      "itemSelector": "li.product",
+      "titleSelector": ".woocommerce-loop-product__title",
+      "linkSelector": ".woocommerce-loop-product__link",
+      "linkAttr": "href",
+      "priceSelector": ".price",
+      "outOfStockSelector": ".outofstock",
+      "enabled": true
+    },
+    {
+      "id": "nickolls-and-perks-new-whisky",
+      "name": "Nickolls & Perks - New Whisky",
+      "url": "https://www.nickollsandperks.co.uk/New-and-Special-Offers/New-Whisky",
+      "itemSelector": "div.product",
+      "titleSelector": ".wd-entities-title",
+      "linkSelector": "a.product-image-link",
+      "linkAttr": "href",
+      "priceSelector": ".price .woocommerce-Price-amount",
+      "outOfStockSelector": ".outofstock",
+      "enabled": true
     }
   ]
 }

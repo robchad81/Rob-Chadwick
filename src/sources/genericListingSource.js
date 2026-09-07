@@ -40,14 +40,17 @@ export async function fetchListing(source) {
  * Some retailers replace the price with plain text like "Sold Out" rather
  * than adding a distinct element/class we can select on - outOfStockText
  * handles that case by checking the price text itself. outOfStockSelector
- * (an element that only exists when out of stock) is checked otherwise.
+ * (an element that only exists when out of stock) is checked otherwise -
+ * against the item itself as well as its descendants, since e.g. WooCommerce
+ * puts an "outofstock" class directly on the product wrapper rather than on
+ * a separate badge element.
  */
 function isInStock(node, source, price) {
   if (source.outOfStockText) {
     return !(price ?? "").toLowerCase().includes(source.outOfStockText.toLowerCase());
   }
   if (source.outOfStockSelector) {
-    return node.find(source.outOfStockSelector).length === 0;
+    return !(node.is(source.outOfStockSelector) || node.find(source.outOfStockSelector).length > 0);
   }
   return true;
 }
@@ -58,7 +61,11 @@ export function parseListing(html, source) {
 
   $(source.itemSelector).each((_, el) => {
     const node = $(el);
-    const title = node.find(source.titleSelector).first().text().trim();
+    const titleEl = node.find(source.titleSelector).first();
+    // Some sites bury the clean product name in an attribute (e.g. an
+    // anchor's title="...") while its visible text is cluttered with
+    // price/ABV/button text - titleAttr reads that attribute instead.
+    const title = (source.titleAttr ? titleEl.attr(source.titleAttr) : titleEl.text())?.trim();
     const hrefRaw = node.find(source.linkSelector).first().attr(source.linkAttr ?? "href");
     if (!title || !hrefRaw) return;
 

@@ -38,35 +38,60 @@ or checks out.
 
 ## Sources currently enabled
 
-Five retailers have verified selectors in `config.json` (see `test/fixtures/`
-and `test/realSources.test.js` - `npm test` checks these selectors still
-parse correctly any time the code or config changes), but only two are
-actually enabled and alerting:
+Eleven retailers have verified selectors in `config.json` (see
+`test/fixtures/` and `test/realSources.test.js` - `npm test` checks these
+selectors still parse correctly any time the code or config changes), but
+three are disabled:
 
-- **Abbey Whisky** and **Loch Fyne Whiskies** - enabled, confirmed working
-  in production (both seed their baseline cleanly, no blocking).
-- **The Whisky Exchange**, **Master of Malt**, and **Royal Mile Whiskies** -
-  disabled (`"enabled": false`, with a `"disabledReason"` explaining why).
-  All three outright blocked requests from Render in production (403/429)
-  even with realistic browser headers, which looks like IP-range blocking
-  rather than anything fixable from the request side - smaller retailers
-  aren't immune to this either, just less likely to have it. Their selectors
-  are verified and ready to flip back on if we ever add a scraping-API/proxy
-  service in front of them - see the git history around when they were
-  disabled for the full investigation.
+- **Enabled**: Abbey Whisky, Loch Fyne Whiskies, Hard To Find Whisky, The
+  Spirits Embassy, Whiskys.co.uk, Whisky International Online, House of
+  Malt, Nickolls & Perks. Abbey Whisky and Loch Fyne Whiskies are confirmed
+  working in production; the other six are verified against saved pages but
+  not yet confirmed against the live sites in production - check Render's
+  logs after deploying to see which, if any, also get blocked.
+- **Disabled** (`"enabled": false`, with a `"disabledReason"` explaining
+  why): The Whisky Exchange, Master of Malt, and Royal Mile Whiskies - all
+  three outright blocked requests from Render in production (403/429) even
+  with realistic browser headers, which looks like IP-range blocking rather
+  than anything fixable from the request side. Their selectors are verified
+  and ready to flip back on if we ever add a scraping-API/proxy service in
+  front of them - see the git history around when they were disabled for
+  the full investigation.
+
+A couple of sites (Hard To Find Whisky, Whiskys.co.uk, Whisky International
+Online) had no visible out-of-stock indicator on their new-arrivals page at
+all when checked - either they only list in-stock items there, or the
+signal just wasn't present in the saved sample. Those sources have no
+`outOfStockSelector`/`outOfStockText` set, so everything reads as in stock;
+revisit this if a sold-out item is ever spotted still showing as available.
 
 Master of Malt's markup is a client-rendered React/Next.js app rather than
 plain server-rendered HTML, which would make it more likely to break if
 enabled again and their frontend changes.
 
 To add another retailer: open its listing page, Inspect a product card to
-find the repeating element and the title/link/price selectors within it. For
-out-of-stock detection, use `outOfStockSelector` (a CSS selector for an
-element that only exists when out of stock) if the site has one, or
+find the repeating element and the title/link/price selectors within it -
+if the card's outer element is itself the link/title (rather than wrapping
+a separate one), select a containing element instead (see Hard To Find
+Whisky or Nickolls & Perks for examples), since selectors are matched
+against descendants of `itemSelector`, not the item itself. If the clean
+product name lives in an attribute (e.g. an anchor's `title="..."`) rather
+than its visible text, which is often cluttered with price/ABV/button text,
+set `titleAttr` to read that instead.
+
+For out-of-stock detection, try, in order: `outOfStockSelector` (a CSS
+selector for an element that only exists - or a class that's only present
+on the item itself - when out of stock; WooCommerce sites like House of
+Malt and Nickolls & Perks put an `outofstock` class directly on the product
+wrapper, which this also matches against, not just descendants), or
 `outOfStockText` (a substring to check for in the price text, e.g. `"Sold
-Out"`) if it doesn't - check both against a couple of real sold-out products
-before trusting either, since some sites expose stock-status data attributes
-that don't actually match what's displayed (Loch Fyne Whiskies does this).
+Out"`) if there's no such element. Check whichever you pick against a
+couple of real sold-out products before trusting it, since some sites
+expose stock-status data attributes that don't actually match what's
+displayed (Loch Fyne Whiskies does this) - and some listing pages simply
+don't show out-of-stock items at all, in which case there's nothing to
+select and the source just won't have out-of-stock detection.
+
 Add the new entry to `config.json` with `"enabled": true`, and ideally a
 fixture + test like the ones already there. A source left on placeholder
 (`"VERIFY: ..."`) selectors will throw a clear error rather than silently

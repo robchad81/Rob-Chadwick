@@ -94,3 +94,71 @@ test("Loch Fyne Whiskies config selectors match a real sample page", () => {
     "text-based 'Sold Out' detection, not the unreliable data-dimension10 attribute"
   );
 });
+
+test("Hard To Find Whisky config selectors match a real sample page", () => {
+  const source = findSource("hard-to-find-whisky-new-arrivals");
+  const items = parseListing(loadFixture("hard-to-find-whisky-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].title, "Jackton Distillery - Raer - Inaugural Lowland Single Malt Scotch Whisky");
+  assert.equal(items[0].price, "£67.95");
+  assert.equal(items[0].inStock, true, "no out-of-stock signal found on this page, so everything reads in stock");
+});
+
+test("The Spirits Embassy config selectors match a real sample page", () => {
+  const source = findSource("spirits-embassy-latest-arrivals");
+  const items = parseListing(loadFixture("spirits-embassy-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.equal(items[0].title, "Lagavulin 16 Year Old");
+  assert.equal(items[0].price, "£61.66");
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(items[1].title, "Rare Sold Out Dram");
+  assert.equal(items[1].inStock, false);
+});
+
+test("Whiskys.co.uk config selectors match a real sample page", () => {
+  const source = findSource("whiskys-co-uk-new-in-stock");
+  const items = parseListing(loadFixture("whiskys-co-uk-sample.html"), source);
+
+  assert.equal(items.length, 1);
+  assert.match(items[0].title, /Ardnamurchan AD\/10\.22/);
+  assert.equal(items[0].price, "£150.00");
+  assert.equal(items[0].inStock, true);
+});
+
+test("Whisky International Online config selectors match a real sample page", () => {
+  const source = findSource("whisky-international-online-new");
+  const items = parseListing(loadFixture("whisky-international-online-sample.html"), source);
+
+  assert.equal(items.length, 1);
+  assert.equal(items[0].title, "Springbank 2026 Hand Filled Distillery Exclusive 56.3%");
+  assert.equal(items[0].price, "£155.94 GBP");
+  assert.equal(items[0].inStock, true);
+});
+
+test("House of Malt config selectors match a real sample page, including WooCommerce's item-level outofstock class", () => {
+  const source = findSource("house-of-malt-new-arrivals");
+  const items = parseListing(loadFixture("house-of-malt-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.match(items[0].title, /Booker's Bourbon/);
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(items[1].title, "Rare Sold Out Dram");
+  assert.equal(items[1].inStock, false);
+});
+
+test("Nickolls & Perks config selectors match a real sample page", () => {
+  const source = findSource("nickolls-and-perks-new-whisky");
+  const items = parseListing(loadFixture("nickolls-and-perks-sample.html"), source);
+
+  assert.equal(items.length, 2);
+  assert.match(items[0].title, /Highland Single Malt 19 Year Old 2007/);
+  assert.equal(items[0].price, "£84.95", "should pick the first (inc. VAT) price, not the excl. VAT one nested inside it");
+  assert.equal(items[0].inStock, true);
+
+  assert.equal(items[1].title, "Rare Sold Out Dram");
+  assert.equal(items[1].inStock, false);
+});
