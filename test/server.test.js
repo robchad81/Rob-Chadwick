@@ -77,6 +77,18 @@ test("POST /stripe/webhook processes a verified event and grants the role", asyn
   });
 });
 
+test("health check still works and the webhook route isn't registered when Stripe isn't configured", async () => {
+  const app = createServer({ stripe: undefined, stripeWebhookSecret: undefined, store: fakeStore(), notifier: fakeNotifier() });
+
+  await withServer(app, async (baseUrl) => {
+    const health = await fetch(baseUrl);
+    assert.equal(health.status, 200);
+
+    const webhook = await fetch(`${baseUrl}/stripe/webhook`, { method: "POST", body: "{}" });
+    assert.equal(webhook.status, 404);
+  });
+});
+
 test("POST /stripe/webhook rejects a request with a bad signature", async () => {
   const fakeStripe = {
     webhooks: {

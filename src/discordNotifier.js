@@ -60,6 +60,9 @@ export class DiscordNotifier {
   }
 
   async postInstantAlert(source, kind, item) {
+    // No paid channel configured yet (monetization setup in progress) -
+    // nothing to post instantly to, the free channel post still happens.
+    if (!this.instantAlertsChannelId) return;
     await this._postToChannel(this.instantAlertsChannelId, source, kind, item);
   }
 

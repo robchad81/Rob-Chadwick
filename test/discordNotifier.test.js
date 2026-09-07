@@ -59,6 +59,17 @@ test("_handleDirectMessage ignores messages sent in a server, not a DM", async (
   assert.equal(called, false);
 });
 
+test("postInstantAlert does nothing when no paid channel is configured (monetization not set up yet)", async () => {
+  const notifier = new DiscordNotifier({ token: "fake" }); // no instantAlertsChannelId
+  notifier.client.channels.fetch = async () => {
+    throw new Error("should not attempt to fetch a channel when none is configured");
+  };
+
+  await notifier.postInstantAlert({ name: "Test Source" }, "New release", { title: "X", url: "https://x" });
+  // No assertion needed beyond "didn't throw" - the stubbed fetch would have
+  // thrown if postInstantAlert tried to post anywhere.
+});
+
 test("_handleDirectMessage does not send anything if onDirectMessage throws", async () => {
   const notifier = new DiscordNotifier({
     token: "fake",
