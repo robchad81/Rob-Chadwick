@@ -176,3 +176,39 @@ test("Poller respects freeAlertDelayMs when scheduling the free-channel post", a
     global.fetch = originalFetch;
   }
 });
+
+test("Poller treats 0 parsed items as a failure rather than a valid empty snapshot", async () => {
+  const source = {
+    id: "good-source",
+    name: "Good Source",
+    url: "https://example-retailer.test/new-arrivals",
+    itemSelector: ".product-card",
+    titleSelector: ".product-card__title",
+    linkSelector: ".product-card__link",
+    priceSelector: ".product-card__price",
+  };
+  const originalFetch = global.fetch;
+  // A page with no matching product cards at all - e.g. a glitch, an
+  // unexpected redirect, or a layout change - but still HTTP 200.
+  global.fetch = async () => ({ ok: true, text: async () => "<html><body>nothing here</body></html>" });
+
+  try {
+    const existingSnapshot = { x: { id: "x", title: "X", url: "https://x", inStock: true } };
+    const config = { sources: [source], consecutiveFailuresBeforeAlert: 1 };
+    const notifier = fakeNotifier();
+    const store = fakeStore({ "snapshot:good-source": existingSnapshot });
+    const poller = new Poller({ config, store, notifier });
+
+    await poller.pollOnce();
+
+    assert.equal(notifier.instantAlerts.length, 0, "should not treat every previously-seen item as newly missing/new");
+    assert.equal(notifier.adminAlerts.length, 1, "0 items should be reported like any other failure");
+    assert.deepEqual(
+      store.get("snapshot:good-source"),
+      existingSnapshot,
+      "the real snapshot must survive a glitchy empty poll, or everything would look new again next time"
+    );
+  } finally {
+    global.fetch = originalFetch;
+  }
+});

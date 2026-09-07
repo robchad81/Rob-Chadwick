@@ -49,6 +49,16 @@ export class Poller {
   async _pollSource(source) {
     try {
       const currentItems = await fetchListing(source);
+      if (currentItems.length === 0) {
+        // A real "new arrivals" style page having genuinely zero items is
+        // rare enough that this is far more likely a transient glitch (an
+        // odd response, a layout hiccup) than reality. Treating it as a
+        // failure - not saving it as the new baseline - matters a lot:
+        // saving an empty snapshot here would make every item look "new"
+        // again on the next successful poll and flood the alert channel.
+        throw new Error("Parsed 0 items - selectors may be broken, or the page returned unexpected content");
+      }
+
       const previousItems = this.store.get(`snapshot:${source.id}`, undefined);
 
       if (previousItems === undefined) {

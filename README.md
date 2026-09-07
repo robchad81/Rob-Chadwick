@@ -18,6 +18,15 @@ or checks out.
 - The very first poll of a source (or after clearing its state) only
   records a baseline silently - it doesn't alert on everything currently
   listed, since that's not "new," just the first time we've looked.
+- A poll that parses 0 items is treated as a failure, not a valid empty
+  result, and doesn't overwrite the saved baseline. Real "new arrivals"
+  pages essentially never have zero products - a poll that finds none is
+  far more likely a glitch (an odd response, a temporary layout change)
+  than reality. Without this, one glitchy poll would save an empty
+  baseline, and the very next successful poll would see everything on the
+  page as "new" and flood the alerts channel with the entire listing at
+  once (this happened in production with Hard To Find Whisky before the
+  fix).
 - Every change is posted instantly to the paid channel, and again to the
   free channel after `freeAlertDelayMs` (20 minutes by default) - that delay
   is the entire value proposition of paying.
