@@ -135,7 +135,8 @@
       "linkAttr": "href",
       "priceSelector": ".price .woocommerce-Price-amount",
       "outOfStockSelector": ".outofstock",
-      "enabled": true
+      "enabled": false,
+      "disabledReason": "Site shows an age-verification gate to a fresh, cookie-less request (confirmed in an incognito browser) - our plain fetch gets served that instead of the real product listing, so it silently finds 0 items rather than erroring. Selectors are verified against a real saved copy of the page and ready if we ever add cookie handling or a headless-browser fetch for this source."
     }
   ]
 }

@@ -41,22 +41,27 @@ or checks out.
 Eleven retailers have verified selectors in `config.json` (see
 `test/fixtures/` and `test/realSources.test.js` - `npm test` checks these
 selectors still parse correctly any time the code or config changes), but
-three are disabled:
+four are disabled:
 
-- **Enabled**: Abbey Whisky, Loch Fyne Whiskies, Hard To Find Whisky, The
-  Spirits Embassy, Whiskys.co.uk, Whisky International Online, House of
-  Malt, Nickolls & Perks. Abbey Whisky and Loch Fyne Whiskies are confirmed
-  working in production; the other six are verified against saved pages but
-  not yet confirmed against the live sites in production - check Render's
-  logs after deploying to see which, if any, also get blocked.
+- **Enabled and confirmed working in production**: Abbey Whisky, Loch Fyne
+  Whiskies, Hard To Find Whisky, The Spirits Embassy, Whiskys.co.uk, Whisky
+  International Online, House of Malt.
 - **Disabled** (`"enabled": false`, with a `"disabledReason"` explaining
-  why): The Whisky Exchange, Master of Malt, and Royal Mile Whiskies - all
-  three outright blocked requests from Render in production (403/429) even
-  with realistic browser headers, which looks like IP-range blocking rather
-  than anything fixable from the request side. Their selectors are verified
-  and ready to flip back on if we ever add a scraping-API/proxy service in
-  front of them - see the git history around when they were disabled for
-  the full investigation.
+  why):
+  - The Whisky Exchange, Master of Malt, and Royal Mile Whiskies - all
+    three outright blocked requests from Render in production (403/429)
+    even with realistic browser headers, which looks like IP-range
+    blocking rather than anything fixable from the request side.
+  - Nickolls & Perks - shows an age-verification gate to a fresh,
+    cookie-less request, so our plain fetch silently gets 0 items instead
+    of the real listing (confirmed by checking the live site in an
+    incognito browser). Would need cookie handling or a headless-browser
+    fetch to work around, which isn't worth it for one source.
+
+  All four have selectors verified against a real saved copy of their page
+  and are ready to re-enable if we ever add a scraping-API/proxy service or
+  headless-browser fetching - see the git history around when each was
+  disabled for the full investigation.
 
 A couple of sites (Hard To Find Whisky, Whiskys.co.uk, Whisky International
 Online) had no visible out-of-stock indicator on their new-arrivals page at
