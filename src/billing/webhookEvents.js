@@ -9,6 +9,18 @@ import { logger } from "../logger.js";
  * card decline would be a bad experience for a paying customer.
  */
 export async function handleStripeEvent(event, { store, notifier }) {
+  // Stripe keeps retrying a webhook delivery on its own schedule for hours
+  // after a failure (e.g. our signing secret being briefly wrong), even
+  // after a manual "Resend" from the dashboard already got it through once.
+  // Without this guard, a stale automatic retry can redeliver a long-since-
+  // handled event and redo its action - e.g. re-granting a subscriber role
+  // that a later cancellation had already correctly revoked.
+  const processedKey = `processedStripeEvent:${event.id}`;
+  if (store.get(processedKey, false)) {
+    logger.info(`Ignoring Stripe event ${event.id} (${event.type}) - already processed once before.`);
+    return;
+  }
+
   switch (event.type) {
     case "checkout.session.completed":
       await handleCheckoutCompleted(event.data.object, { store, notifier });
@@ -19,6 +31,8 @@ export async function handleStripeEvent(event, { store, notifier }) {
     default:
       break;
   }
+
+  store.set(processedKey, true);
 }
 
 async function handleCheckoutCompleted(session, { store, notifier }) {

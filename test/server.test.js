@@ -58,6 +58,7 @@ test("POST /stripe/webhook processes a verified event and grants the role", asyn
         assert.equal(signature, "t=1,v1=deadbeef");
         assert.equal(secret, "whsec_test");
         return {
+          id: "evt_1",
           type: "checkout.session.completed",
           data: { object: { id: "cs_1", client_reference_id: "discord-user-1", customer: "cus_1" } },
         };
