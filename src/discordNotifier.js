@@ -38,7 +38,11 @@ export class DiscordNotifier {
       const reply = await this.onDirectMessage(message.author.id);
       if (reply) await message.channel.send(reply);
     } catch (error) {
-      logger.error(`Failed to handle DM from ${message.author.id}:`, error.message);
+      // Stripe's own error message here is a generic wrapper ("An error
+      // occurred with our connection to Stripe") that hides the actual
+      // underlying cause - log the wrapped detail/cause too so a real
+      // network error code (ECONNRESET, ETIMEDOUT, etc.) is visible.
+      logger.error(`Failed to handle DM from ${message.author.id}:`, error.message, error.detail ?? error.cause ?? "");
     }
   }
 
