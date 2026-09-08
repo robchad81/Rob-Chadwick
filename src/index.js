@@ -42,6 +42,15 @@ function requireEnv(name) {
  * that setup is still in progress, rather than the whole app refusing to
  * start until every Stripe/Discord-role env var is filled in.
  */
+function formatDelay(ms) {
+  const minutes = Math.round((ms ?? 0) / 60000);
+  if (minutes > 0 && minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours}-hour`;
+  }
+  return `${minutes}-minute`;
+}
+
 function loadMonetizationConfig() {
   const keys = [
     "STRIPE_SECRET_KEY",
@@ -106,7 +115,7 @@ async function main() {
           return {
             text:
               `Get instant alerts (the moment a new release or restock is found, instead of the ` +
-              `${Math.round((config.freeAlertDelayMs ?? 0) / 60000)}-minute delay in the free channel) for ` +
+              `${formatDelay(config.freeAlertDelayMs)} delay in the free channel) for ` +
               `£${config.subscriptionPriceGbp ?? "10"}/month:`,
             url,
             buttonLabel: `Subscribe - £${config.subscriptionPriceGbp ?? "10"}/month`,
