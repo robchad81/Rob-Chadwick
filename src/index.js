@@ -103,11 +103,14 @@ async function main() {
             successUrl: process.env.CHECKOUT_SUCCESS_URL ?? "https://discord.com",
             cancelUrl: process.env.CHECKOUT_CANCEL_URL ?? "https://discord.com",
           });
-          return (
-            `Get instant alerts (the moment a new release or restock is found, instead of the ` +
-            `${Math.round((config.freeAlertDelayMs ?? 0) / 60000)}-minute delay in the free channel) for ` +
-            `£${config.subscriptionPriceGbp ?? "10"}/month:\n${url}`
-          );
+          return {
+            text:
+              `Get instant alerts (the moment a new release or restock is found, instead of the ` +
+              `${Math.round((config.freeAlertDelayMs ?? 0) / 60000)}-minute delay in the free channel) for ` +
+              `£${config.subscriptionPriceGbp ?? "10"}/month:`,
+            url,
+            buttonLabel: `Subscribe - £${config.subscriptionPriceGbp ?? "10"}/month`,
+          };
         }
       : undefined,
   });

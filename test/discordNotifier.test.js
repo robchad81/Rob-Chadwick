@@ -70,6 +70,28 @@ test("postInstantAlert does nothing when no paid channel is configured (monetiza
   // thrown if postInstantAlert tried to post anywhere.
 });
 
+test("_handleDirectMessage renders a {text, url} reply as a link button instead of a raw pasted URL", async () => {
+  const notifier = new DiscordNotifier({
+    token: "fake",
+    onDirectMessage: async () => ({
+      text: "Subscribe for instant alerts:",
+      url: "https://checkout.stripe.com/c/pay/cs_test_abc",
+      buttonLabel: "Subscribe - £10/month",
+    }),
+  });
+  const message = fakeMessage();
+
+  await notifier._handleDirectMessage(message);
+
+  assert.equal(message._sent.length, 1);
+  const [payload] = message._sent;
+  assert.equal(payload.content, "Subscribe for instant alerts:");
+  assert.equal(payload.components.length, 1);
+  const [button] = payload.components[0].components;
+  assert.equal(button.data.label, "Subscribe - £10/month");
+  assert.equal(button.data.url, "https://checkout.stripe.com/c/pay/cs_test_abc");
+});
+
 test("_handleDirectMessage does not send anything if onDirectMessage throws", async () => {
   const notifier = new DiscordNotifier({
     token: "fake",

@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Partials } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits, Partials } from "discord.js";
 import { logger } from "./logger.js";
 
 export class DiscordNotifier {
@@ -36,7 +36,26 @@ export class DiscordNotifier {
     if (message.author.bot || message.guild) return;
     try {
       const reply = await this.onDirectMessage(message.author.id);
-      if (reply) await message.channel.send(reply);
+      if (!reply) return;
+
+      // onDirectMessage can return a plain string, or {text, url, buttonLabel}
+      // to render the link as a proper button instead of a raw pasted URL -
+      // tidier, and clearly distinguishable from a phishing-style text link.
+      if (typeof reply === "string") {
+        await message.channel.send(reply);
+        return;
+      }
+      const components = reply.url
+        ? [
+            new ActionRowBuilder().addComponents(
+              new ButtonBuilder()
+                .setLabel(reply.buttonLabel ?? "Subscribe")
+                .setStyle(ButtonStyle.Link)
+                .setURL(reply.url)
+            ),
+          ]
+        : [];
+      await message.channel.send({ content: reply.text, components });
     } catch (error) {
       // Stripe's own error message here is a generic wrapper ("An error
       // occurred with our connection to Stripe") that hides the actual
