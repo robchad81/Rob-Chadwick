@@ -2,7 +2,14 @@ import "dotenv/config";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { setDefaultResultOrder } from "node:dns";
 import Stripe from "stripe";
+
+// Node 17+ prefers IPv6 when a host offers it, but Render's network doesn't
+// fully support outbound IPv6 - connections to hosts that do publish IPv6
+// addresses (api.stripe.com does; most retailer sites we scrape don't,
+// which is why only Stripe calls were affected) fail silently as a result.
+setDefaultResultOrder("ipv4first");
 
 import { JsonStore } from "./store.js";
 import { Poller } from "./poller.js";
