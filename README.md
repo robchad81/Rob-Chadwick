@@ -28,7 +28,7 @@ or checks out.
   once (this happened in production with Hard To Find Whisky before the
   fix).
 - Every change is posted instantly to the paid channel, and again to the
-  free channel after `freeAlertDelayMs` (20 minutes by default) - that delay
+  free channel after `freeAlertDelayMs` (1 hour by default) - that delay
   is the entire value proposition of paying.
 - If a source fails to fetch/parse several times in a row, you (the admin)
   get a DM instead of the public channel going quiet - see

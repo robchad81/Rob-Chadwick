@@ -1,7 +1,7 @@
 {
   "pollIntervalMs": 120000,
   "consecutiveFailuresBeforeAlert": 3,
-  "freeAlertDelayMs": 1200000,
+  "freeAlertDelayMs": 3600000,
   "subscriptionPriceGbp": "10",
   "sources": [
     {
