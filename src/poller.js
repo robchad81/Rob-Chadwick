@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { fetchListing } from "./sources/genericListingSource.js";
 import { logger } from "./logger.js";
 
@@ -37,6 +39,22 @@ export class Poller {
     this.schedule = schedule;
     this.failureCounts = new Map();
     this.alerted = new Set();
+
+    // A free alert's delay is scheduled with an in-memory timer, which a
+    // process restart (e.g. a redeploy) wipes out - without this, a change
+    // found right before a restart would post instantly to the paid channel
+    // but never reach the free one, since the item's also already marked
+    // "seen" by then and won't be caught as new again on a later poll.
+    // Rescheduling from what's persisted on disk closes that gap.
+    this._reschedulePendingFreeAlerts();
+  }
+
+  _reschedulePendingFreeAlerts() {
+    const pending = this.store.get("pendingFreeAlerts", {});
+    for (const id of Object.keys(pending)) {
+      const delayMs = Math.max(0, pending[id].postAt - Date.now());
+      this.schedule(() => this._firePendingFreeAlert(id), delayMs);
+    }
   }
 
   async pollOnce() {
@@ -92,11 +110,27 @@ export class Poller {
     await this.notifier.postInstantAlert(source, kind, item);
 
     const delayMs = this.config.freeAlertDelayMs ?? 0;
-    this.schedule(() => {
-      this.notifier
-        .postFreeAlert(source, kind, item)
-        .catch((error) => logger.error(`Failed to post delayed free alert for "${source.id}":`, error.message));
-    }, delayMs);
+    const id = randomUUID();
+    const pending = this.store.get("pendingFreeAlerts", {});
+    pending[id] = { source: { id: source.id, name: source.name }, kind, item, postAt: Date.now() + delayMs };
+    this.store.set("pendingFreeAlerts", pending);
+
+    this.schedule(() => this._firePendingFreeAlert(id), delayMs);
+  }
+
+  async _firePendingFreeAlert(id) {
+    const pending = this.store.get("pendingFreeAlerts", {});
+    const entry = pending[id];
+    if (!entry) return; // already fired - e.g. this process both scheduled and rescheduled it
+
+    delete pending[id];
+    this.store.set("pendingFreeAlerts", pending);
+
+    try {
+      await this.notifier.postFreeAlert(entry.source, entry.kind, entry.item);
+    } catch (error) {
+      logger.error(`Failed to post delayed free alert for "${entry.source.id}":`, error.message);
+    }
   }
 
   _recordSuccess(source) {

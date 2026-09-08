@@ -177,6 +177,45 @@ test("Poller respects freeAlertDelayMs when scheduling the free-channel post", a
   }
 });
 
+test("a free alert scheduled but not yet fired survives a process restart", async () => {
+  const source = {
+    id: "good-source",
+    name: "Good Source",
+    url: "https://example-retailer.test/new-arrivals",
+    itemSelector: ".product-card",
+    titleSelector: ".product-card__title",
+    linkSelector: ".product-card__link",
+    priceSelector: ".product-card__price",
+  };
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({ ok: true, text: async () => cardHtml({ href: "/x", title: "X", price: "£10" }) });
+
+  try {
+    const config = { sources: [source], freeAlertDelayMs: 1200000 };
+    const store = fakeStore({ "snapshot:good-source": {} }); // pretend we've already seeded once
+    const notifier1 = fakeNotifier();
+
+    // Simulates the real setTimeout scheduler: the callback is captured but
+    // never actually invoked, standing in for a redeploy killing the process
+    // before the real timer would have fired.
+    const poller1 = new Poller({ config, store, notifier: notifier1, schedule: () => {} });
+    await poller1.pollOnce();
+    assert.equal(notifier1.freeAlerts.length, 0);
+    assert.equal(Object.keys(store.get("pendingFreeAlerts", {})).length, 1);
+
+    // A fresh Poller over the same (persisted) store, as if the process had
+    // just restarted, should pick up and fire the pending alert rather than
+    // losing it.
+    const notifier2 = fakeNotifier();
+    new Poller({ config, store, notifier: notifier2, schedule: runImmediately });
+    assert.equal(notifier2.freeAlerts.length, 1);
+    assert.equal(notifier2.freeAlerts[0].item.title, "X");
+    assert.deepEqual(store.get("pendingFreeAlerts", {}), {}, "the fired entry should be cleared from the store");
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test("Poller treats 0 parsed items as a failure rather than a valid empty snapshot", async () => {
   const source = {
     id: "good-source",
