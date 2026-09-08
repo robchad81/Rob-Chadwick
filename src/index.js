@@ -25,8 +25,13 @@ function loadConfig() {
   return JSON.parse(raw);
 }
 
+// Trimmed because a stray trailing newline/space from copy-pasting a secret
+// into a dashboard is a common, easy-to-miss mistake - and an invisible one,
+// since it doesn't show up in a masked ("•••••") field. Left untrimmed, it
+// breaks outgoing requests with a cryptic "Invalid character in header
+// content" error rather than a clear "bad credentials" one.
 function requireEnv(name) {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
 }
@@ -46,7 +51,7 @@ function loadMonetizationConfig() {
     "GUILD_ID",
     "SUBSCRIBER_ROLE_ID",
   ];
-  const values = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  const values = Object.fromEntries(keys.map((key) => [key, process.env[key]?.trim()]));
   const missing = keys.filter((key) => !values[key]);
 
   if (missing.length === keys.length) return null;
